@@ -1,0 +1,24 @@
+{
+  "name": "airtable-fetch",
+  "version": "0.1.0",
+  "description": "JS Client for Airtable Web API built on top unjs/ofetch Fetch API",
+  "repository": "nadhifikbarw/airtable-fetch",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "unbuild"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "defu": "^6.1.4",
+    "eslint": "^9.16.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-unjs": "^0.4.2",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "ofetch": "^1.4.1"
+  }
+}
