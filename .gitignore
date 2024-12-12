@@ -4,6 +4,7 @@
 *.cpuprofile
 *.local
 *.log
+.env
 /.vscode/
 coverage
 node_modules

@@ -9,5 +9,5 @@
     "strict": true,
     "declaration": true
   },
-  "include": ["src", "eslint.config.mjs"]
+  "include": ["src"]
 }

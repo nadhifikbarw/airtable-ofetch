@@ -71,7 +71,7 @@ export class Airtable {
     const retryStatusCodes = [429];
 
     this.$fetch = ofetch.create({
-      baseURL: this.endpointUrl,
+      baseURL: `${this.endpointUrl}/v${this.apiVersionMajor}`,
       headers: {
         Authorization: "Bearer " + this.apiKey,
         ...this.customHeaders,
