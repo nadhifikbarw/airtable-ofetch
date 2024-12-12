@@ -1,22 +1,21 @@
+import type { $Fetch, FetchResponse } from "ofetch";
 import type { RetryDelayOption } from "./retry";
 import type {
-  CreateAirtableFetchOptions,
-  FetchPaginateRequest,
-  FetchPaginateOptions,
-  FetchPaginateContext,
   AirtableOptions,
-  CustomHeaders,
-  UserInfo,
   BaseInfo,
+  CreateAirtableFetchOptions,
+  CustomHeaders,
+  FetchPaginateContext,
+  FetchPaginateOptions,
+  FetchPaginateRequest,
+  UserInfo,
 } from "./types";
-
-import type { FetchResponse, $Fetch } from "ofetch";
 
 import { defu } from "defu";
 import { ofetch } from "ofetch";
-import { createRetryDelayFn } from "./retry";
-import { AirtableError } from "./error";
 import { AirtableBase } from "./base";
+import { AirtableError } from "./error";
+import { createRetryDelayFn } from "./retry";
 import { defaultGetOffset, isEmptyObject } from "./utils";
 
 export class Airtable {
@@ -217,8 +216,7 @@ export class Airtable {
     if ($fetchOptions.headers === "replace")
       $opts.customHeaders = opts.customHeaders;
 
-    const newAirtable = new Airtable($opts as AirtableOptions);
-    return newAirtable;
+    return new Airtable($opts as AirtableOptions);
   }
 
   base(baseId: string) {
