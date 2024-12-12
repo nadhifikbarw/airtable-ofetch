@@ -18,8 +18,18 @@ import { AirtableError } from "./error";
 import { createRetryDelayFn } from "./retry";
 import { defaultGetOffset, isEmptyObject } from "./utils";
 
+// Prevent key getting included as enumerable property
+// retain security practice from airtable.js implementation
+// read airtable.test.ts
+const $secrets: WeakMap<Airtable, string> = new WeakMap();
+
+declare module "ofetch" {
+  interface FetchContext {
+    requestAttempt?: number;
+  }
+}
+
 export class Airtable {
-  readonly apiKey: string;
   readonly apiVersion: string;
   readonly apiVersionMajor: string;
   readonly customHeaders: CustomHeaders | undefined;
@@ -29,7 +39,7 @@ export class Airtable {
 
   readonly $fetch: $Fetch;
 
-  constructor(opts: AirtableOptions) {
+  constructor(opts?: AirtableOptions) {
     const $opts = defu(opts, {
       endpointURL:
         process.env.AIRTABLE_ENDPOINT_URL || "https://api.airtable.com",
@@ -42,7 +52,7 @@ export class Airtable {
       throw new Error("An API key is required to connect to Airtable");
     }
 
-    this.apiKey = $opts.apiKey.trim();
+    $secrets.set(this, $opts.apiKey);
     this.endpointUrl = $opts.endpointURL;
     this.apiVersion = $opts.apiVersion;
     this.apiVersionMajor = $opts.apiVersion.split(".")[0];
@@ -53,9 +63,10 @@ export class Airtable {
     const retryDelayFn =
       typeof this.noRetryIfRateLimited === "boolean"
         ? this.noRetryIfRateLimited
-          ? createRetryDelayFn()
-          : 0
-        : createRetryDelayFn(this.noRetryIfRateLimited);
+          ? 0
+          : createRetryDelayFn()
+        : /* v8 ignore next */
+          createRetryDelayFn(this.noRetryIfRateLimited);
 
     const retryStatusCodes = [429];
 
@@ -70,6 +81,10 @@ export class Airtable {
       timeout: this.requestTimeout,
       retryDelay: retryDelayFn,
       retryStatusCodes,
+      onRequest(ctx) {
+        ctx.requestAttempt =
+          ctx.requestAttempt === undefined ? 0 : ctx.requestAttempt + 1;
+      },
       onRequestError(ctx) {
         throw new AirtableError("CONNECTION_ERROR", ctx.error.message);
       },
@@ -84,7 +99,11 @@ export class Airtable {
         const statusCode = response.status;
 
         // If retry allowed, pass through retry status codes
-        if (retryDelayFn !== 0 && retryStatusCodes.includes(statusCode)) return;
+        if (
+          ctx.options.retry !== false &&
+          retryStatusCodes.includes(statusCode)
+        )
+          return;
 
         const hasBody = response._data !== undefined;
         const { type, message } = response._data ?? {};
@@ -158,6 +177,10 @@ export class Airtable {
         }
       },
     });
+  }
+
+  get apiKey() {
+    return $secrets.get(this);
   }
 
   async $fetchPaginate<T = any>(
