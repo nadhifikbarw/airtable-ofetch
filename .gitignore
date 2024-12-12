@@ -5,6 +5,7 @@
 *.local
 *.log
 /.vscode/
+coverage
 node_modules
 dist
 temp

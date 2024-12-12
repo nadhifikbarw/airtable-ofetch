@@ -1,8 +1,12 @@
 // @ts-check
 
 import unjs from "eslint-config-unjs";
+import vitestEslint from "@vitest/eslint-plugin";
 import prettierEslint from "eslint-config-prettier";
 
+/**
+ * @type {import('eslint').Linter.Config[]}
+ */
 export default [
   ...unjs({
     ignores: [],
@@ -19,5 +23,9 @@ export default [
       ],
     },
   }),
+  {
+    files: ["tests/**"],
+    ...vitestEslint.configs.recommended,
+  },
   prettierEslint,
 ];
