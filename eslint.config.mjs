@@ -9,6 +9,14 @@ export default [
     rules: {
       "unicorn/no-null": 0,
       "unicorn/no-object-as-default-parameter": 0,
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        {
+          disallowTypeAnnotations: false,
+          fixStyle: "separate-type-imports",
+          prefer: "type-imports",
+        },
+      ],
     },
   }),
   prettierEslint,

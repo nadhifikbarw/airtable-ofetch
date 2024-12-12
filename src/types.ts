@@ -1,5 +1,7 @@
 import type { RetryDelayOption } from "./retry";
+export type MaybePromise<T> = T | Promise<T> | PromiseLike<T>;
 export type CustomHeaders = Record<string, string | number | boolean>;
+import type { FetchOptions, FetchRequest, MappedResponseType } from "ofetch";
 
 // --------------------------
 // Options
@@ -52,18 +54,39 @@ export interface CreateAirtableFetchOptions {
   headers: "resolve" | "replace";
 }
 
-export interface FetchPaginateContext<T = any> {
-  request: RequestInit;
-  response: T;
+export type FetchPaginateRequest = Exclude<FetchRequest, Request>;
+
+// Only support record-styled as body
+export interface FetchPaginateOptions<T = any>
+  extends Omit<FetchOptions<"json", T>, "body">,
+    FetchPaginateHooks<T> {
+  body?: Record<string, any> | null;
 }
 
-export interface FetchPaginateOptions<T = any> {
+export interface FetchPaginateContext<T = any> {
+  request: FetchPaginateRequest;
+  response: MappedResponseType<"json", T>;
+}
+export type FetchPaginateEachPageFn<T = any> = (
+  ctx: FetchPaginateContext<T>
+) => MaybePromise<boolean | void>;
+
+export type FetchPaginateGetOffsetFn<T = any> = (
+  ctx: FetchPaginateContext<T>
+) => MaybePromise<Record<string, any> | void>;
+
+export interface FetchPaginateHooks<T = any> {
   /**
-   * onEachPage() callback should return false to stop
-   * next page iteration
+   * callback may return 'false'
+   * to stop next page iteration
    */
-  onEachPage: (ctx: FetchPaginateContext) => Promise<boolean>;
-  getOffset: (response: T) => Record<string, string>;
+  onEachPage: FetchPaginateEachPageFn<T>;
+
+  /**
+   * callback provide properties
+   * that should be included for next page request body
+   */
+  getOffset?: FetchPaginateGetOffsetFn<T>;
 }
 
 // --------------------------

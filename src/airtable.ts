@@ -1,17 +1,23 @@
 import type { RetryDelayOption } from "./retry";
 import type {
   CreateAirtableFetchOptions,
+  FetchPaginateRequest,
+  FetchPaginateOptions,
+  FetchPaginateContext,
   AirtableOptions,
   CustomHeaders,
   UserInfo,
+  BaseInfo,
 } from "./types";
-import type { FetchResponse } from "ofetch";
+
+import type { FetchResponse, $Fetch } from "ofetch";
 
 import { defu } from "defu";
 import { ofetch } from "ofetch";
 import { createRetryDelayFn } from "./retry";
 import { AirtableError } from "./error";
 import { AirtableBase } from "./base";
+import { defaultGetOffset, isEmptyObject } from "./utils";
 
 export class Airtable {
   readonly apiKey: string;
@@ -22,7 +28,7 @@ export class Airtable {
   readonly noRetryIfRateLimited: boolean | RetryDelayOption;
   readonly requestTimeout: number;
 
-  readonly $fetch: typeof ofetch;
+  readonly $fetch: $Fetch;
 
   constructor(opts: AirtableOptions) {
     const $opts = defu(opts, {
@@ -155,29 +161,39 @@ export class Airtable {
     });
   }
 
-  // async $fetchPaginate<T = any>(
-  //   request: RequestInit,
-  //   opts: FetchPaginateOptions
-  // ) {
-  //   const ctx = request;
-  //   while (true) {
-  //     const response = await this.$fetch<T>(request as Request);
-  //
-  //     // Handle first page?
-  //
-  //     // Support each page?
-  //
-  //     // Check offset field
-  //
-  //     // Call hook
-  //   }
-  //   // Do fetch
-  //   // Check if it has offset
-  // }
+  async $fetchPaginate<T = any>(
+    request: FetchPaginateRequest,
+    options: FetchPaginateOptions<T>
+  ) {
+    const offsetParams: Record<string, any> = {};
 
-  // async $fetchFirst() {
-  //
-  // }
+    while (true) {
+      const response = await this.$fetch<T, "json">(request, {
+        ...options,
+        body: {
+          ...options.body,
+          // Only support request params replace not merging
+          // Airtable pagination always provide pagination params in flat manner
+
+          // Read Enterprise's Audit Log pagination
+          ...offsetParams,
+        },
+      });
+
+      const ctx: FetchPaginateContext<T> = { request, response };
+
+      const requestNextPage = (await options.onEachPage(ctx)) ?? true;
+      if (!requestNextPage) break;
+
+      // Perform pagination using new offset params
+      const pageOffsetParams =
+        typeof options.getOffset === "function"
+          ? await options.getOffset(ctx)
+          : defaultGetOffset(ctx);
+
+      if (!pageOffsetParams || isEmptyObject(pageOffsetParams)) break;
+    }
+  }
 
   create(
     opts: AirtableOptions,
@@ -214,7 +230,13 @@ export class Airtable {
     return { id: data.id, email: data.email, scopes: data.scopes };
   }
 
-  // async bases(): Promise<BaseInfo[]> {
-  //   const data =
-  // }
+  async bases() {
+    const result: BaseInfo[] = [];
+    await this.$fetchPaginate<{ bases: BaseInfo[] }>("/meta/bases", {
+      onEachPage(ctx) {
+        result.push(...ctx.response.bases);
+      },
+    });
+    return result;
+  }
 }
