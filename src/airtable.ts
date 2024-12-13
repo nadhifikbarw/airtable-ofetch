@@ -24,7 +24,7 @@ import { defaultGetOffset, isEmptyObject } from "./utils";
 const $secrets: WeakMap<Airtable, string> = new WeakMap();
 
 declare module "ofetch" {
-  interface FetchContext {
+  interface FetchOptions {
     requestAttempt?: number;
   }
 }
@@ -82,8 +82,10 @@ export class Airtable {
       retryDelay: retryDelayFn,
       retryStatusCodes,
       onRequest(ctx) {
-        ctx.requestAttempt =
-          ctx.requestAttempt === undefined ? 0 : ctx.requestAttempt + 1;
+        ctx.options.requestAttempt =
+          ctx.options.requestAttempt === undefined
+            ? 0
+            : ctx.options.requestAttempt + 1;
       },
       onRequestError(ctx) {
         throw new AirtableError("CONNECTION_ERROR", ctx.error.message);
