@@ -93,8 +93,10 @@ export class Airtable {
       // through such scenario when maintaining response error hook!
       onResponseError(ctx) {
         const response = ctx.response as FetchResponse<{
-          type?: string;
-          message?: string;
+          error?: {
+            type?: string;
+            message?: string;
+          };
         }>;
         const statusCode = response.status;
 
@@ -106,7 +108,7 @@ export class Airtable {
           return;
 
         const hasBody = response._data !== undefined;
-        const { type, message } = response._data ?? {};
+        const { type, message } = response._data?.error ?? {};
 
         switch (statusCode) {
           case 401: {
@@ -192,14 +194,14 @@ export class Airtable {
     while (true) {
       const response = await this.$fetch<T, "json">(request, {
         ...options,
-        body: {
-          ...options.body,
-          // Only support request params replace not merging
-          // Airtable pagination always provide pagination params in flat manner
+        // Only support request params replace not merging
+        // Airtable pagination always provide pagination params in flat manner
 
-          // Read Enterprise's Audit Log pagination
-          ...offsetParams,
-        },
+        // Read Enterprise's Audit Log pagination
+        ...((options.method?.toUpperCase() ?? "GET" === "GET")
+          ? // GET = query | POST = body
+            { query: { ...options.query, ...offsetParams } }
+          : { body: { ...options.body, ...offsetParams } }),
       });
 
       const ctx: FetchPaginateContext<T> = { request, response };
@@ -254,6 +256,7 @@ export class Airtable {
   async bases() {
     const result: BaseInfo[] = [];
     await this.$fetchPaginate<{ bases: BaseInfo[] }>("/meta/bases", {
+      method: "GET",
       onEachPage(ctx) {
         result.push(...ctx.response.bases);
       },
