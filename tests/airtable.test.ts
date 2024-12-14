@@ -1,22 +1,8 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { ofetch } from "ofetch";
 import { mockResponses } from "./utils";
 import { Airtable } from "../src/airtable";
 import { AirtableBase } from "../src/base";
-
-beforeEach(() => {
-  vi.stubEnv(
-    "AIRTABLE_API_KEY",
-    // Fake API Key
-    "patlfHCwkcfjTs2S7.Sb57FdCh8lN80v3lBrR5WCQoB0GDTQAF96paAOHQSXgUwaQiEOZZfD7ZqPwHK9De"
-  );
-});
-
-afterEach(() => {
-  vi.unstubAllGlobals();
-  vi.restoreAllMocks();
-  vi.unstubAllEnvs();
-});
 
 describe("Airtable", function () {
   test("load API key from environment variable", function () {

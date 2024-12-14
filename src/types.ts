@@ -1,5 +1,5 @@
 import type { RetryDelayOption } from "./retry";
-export type MaybePromise<T> = T | Promise<T> | PromiseLike<T>;
+export type MaybePromise<T> = T | PromiseLike<T>;
 export type CustomHeaders = Record<string, string | number | boolean>;
 import type { FetchOptions, FetchRequest, MappedResponseType } from "ofetch";
 
@@ -121,11 +121,82 @@ export interface BaseInfo {
   permissionLevel: UserBasePermissionLevel;
 }
 
+export interface BaseSchema {
+  tables: TableSchema[];
+}
+
+export interface TableSchema {
+  id: string;
+  primaryFieldId: string;
+  name: string;
+  description?: string;
+  fields: {
+    id: string;
+    type?: FieldType;
+    name: string;
+    description: string;
+    options: FieldConfig;
+  }[];
+  views: {
+    id: string;
+    type: ViewType;
+    name: string;
+    visibleFieldIds?: string[];
+  }[];
+}
+
 export interface RecordData<TFields> {
   id: string;
   fields: TFields;
   commentCount?: number;
 }
+
+export type FieldConfig = Record<string, any>;
+
+export type FieldType =
+  | "singleLineText"
+  | "email"
+  | "url"
+  | "multilineText"
+  | "number"
+  | "percent"
+  | "currency"
+  | "singleSelect"
+  | "multipleSelects"
+  | "singleCollaborator"
+  | "multipleCollaborators"
+  | "multipleRecordLinks"
+  | "date"
+  | "dateTime"
+  | "phoneNumber"
+  | "multipleAttachments"
+  | "checkbox"
+  | "formula"
+  | "createdTime"
+  | "rollup"
+  | "count"
+  | "lookup"
+  | "multipleLookupValues"
+  | "autoNumber"
+  | "barcode"
+  | "rating"
+  | "richText"
+  | "duration"
+  | "lastModifiedTime"
+  | "button"
+  | "createdBy"
+  | "lastModifiedBy"
+  | "externalSyncSource"
+  | "aiText";
+
+export type ViewType =
+  | "grid"
+  | "form"
+  | "calendar"
+  | "gallery"
+  | "kanban"
+  | "timeline"
+  | "block";
 
 export interface Thumbnail {
   url: string;

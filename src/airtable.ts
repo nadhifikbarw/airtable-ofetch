@@ -93,7 +93,6 @@ export class Airtable {
             : ctx.options.requestAttempt + 1;
       },
       onRequestError(ctx) {
-        console.log(ctx);
         throw new AirtableError("CONNECTION_ERROR", ctx.error.message);
       },
       // onResponseError() always getting called before ofetch native hook
