@@ -98,10 +98,10 @@ describe("Airtable", function () {
 
   test("instantiate AirtableBase", function () {
     const airtable = new Airtable();
-    const base = airtable.base("appXops3ztc93p3mF");
+    const base = airtable.base("appEpvhkjHcG8OvKu");
 
     expect(base).toBeInstanceOf(AirtableBase);
-    expect(base.id).toEqual("appXops3ztc93p3mF");
+    expect(base.id).toEqual("appEpvhkjHcG8OvKu");
   });
 
   describe("$fetch#retry", function () {

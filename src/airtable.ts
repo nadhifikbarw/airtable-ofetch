@@ -1,6 +1,7 @@
 import type { $Fetch, FetchResponse } from "ofetch";
 import type { RetryDelayOption } from "./retry";
 import type {
+  $FetchPaginate,
   AirtableOptions,
   BaseInfo,
   CreateAirtableFetchOptions,
@@ -38,6 +39,7 @@ export class Airtable {
   readonly requestTimeout: number;
 
   readonly $fetch: $Fetch;
+  readonly $fetchPaginate: $FetchPaginate;
 
   constructor(opts?: AirtableOptions) {
     const $opts = defu(opts, {
@@ -186,44 +188,46 @@ export class Airtable {
         }
       },
     });
+
+    this.$fetchPaginate = async <T = any>(
+      request: FetchPaginateRequest,
+      options: FetchPaginateOptions<T>
+    ) => {
+      let offsetParams: Record<string, any> = {};
+
+      while (true) {
+        const opts = {
+          ...options,
+          // Only support request params replace not merging
+          // Airtable pagination always provide pagination params in flat manner
+
+          // Read Enterprise's Audit Log pagination
+          ...(!options.method || options.method.toUpperCase() === "GET"
+            ? // GET = query | POST = body
+              { query: { ...options.query, ...offsetParams } }
+            : { body: { ...options.body, ...offsetParams } }),
+        };
+        const response = await this.$fetch<T, "json">(request, opts);
+
+        const ctx: FetchPaginateContext<T> = { request, response };
+
+        const requestNextPage = (await options.onEachPage(ctx)) ?? true;
+        if (requestNextPage === false) break;
+
+        // Perform pagination using new offset params
+        const pageOffsetParams =
+          typeof options.getOffset === "function"
+            ? await options.getOffset(ctx)
+            : defaultGetOffset(ctx);
+
+        if (!pageOffsetParams || isEmptyObject(pageOffsetParams)) break;
+        offsetParams = pageOffsetParams;
+      }
+    };
   }
 
   get apiKey() {
     return $secrets.get(this);
-  }
-
-  async $fetchPaginate<T = any>(
-    request: FetchPaginateRequest,
-    options: FetchPaginateOptions<T>
-  ) {
-    const offsetParams: Record<string, any> = {};
-
-    while (true) {
-      const response = await this.$fetch<T, "json">(request, {
-        ...options,
-        // Only support request params replace not merging
-        // Airtable pagination always provide pagination params in flat manner
-
-        // Read Enterprise's Audit Log pagination
-        ...((options.method?.toUpperCase() ?? "GET" === "GET")
-          ? // GET = query | POST = body
-            { query: { ...options.query, ...offsetParams } }
-          : { body: { ...options.body, ...offsetParams } }),
-      });
-
-      const ctx: FetchPaginateContext<T> = { request, response };
-
-      const requestNextPage = (await options.onEachPage(ctx)) ?? true;
-      if (!requestNextPage) break;
-
-      // Perform pagination using new offset params
-      const pageOffsetParams =
-        typeof options.getOffset === "function"
-          ? await options.getOffset(ctx)
-          : defaultGetOffset(ctx);
-
-      if (!pageOffsetParams || isEmptyObject(pageOffsetParams)) break;
-    }
   }
 
   create(

@@ -16,5 +16,5 @@ export function isEmptyObject(value: any): boolean {
   if (value instanceof Date) return false;
 
   const values = Object.values(value);
-  return values.length > 0 ? !values.some((v) => v != null) : false;
+  return values.length === 0 || !values.some((v) => v != null); // Only null or undefined
 }

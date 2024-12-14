@@ -4,35 +4,36 @@ import { mockResponses } from "./utils";
 import { AirtableTable } from "../src/table";
 
 describe("AirtableBase", function () {
-  test("instantiate AirtableBase", function () {
-    const base = new Airtable().base("appBoraw3Xf63uBHF");
-    const table = base.table("tblEAg3wFC0fsDH8z");
+  test("instantiate AirtableTable", function () {
+    const table = new Airtable()
+      .base("appEpvhkjHcG8OvKu")
+      .table("tblc7ieWKVQM9eequ");
 
     expect(table).toBeInstanceOf(AirtableTable);
-    expect(table.id).toEqual("tblEAg3wFC0fsDH8z");
+    expect(table.id).toEqual("tblc7ieWKVQM9eequ");
   });
 
   test("/meta/bases/:id/tables", async function () {
     mockResponses(200, {
       tables: [
         {
-          id: "tblEAg3wFC0fsDH8z",
-          name: "Sample Table",
-          primaryFieldId: "fldPENopNiUUuMYWB",
+          id: "tblc7ieWKVQM9eequ",
+          name: "Example Table",
+          primaryFieldId: "fldCB4M9WX4ofDKHy",
           fields: [
             {
               type: "singleLineText",
-              id: "fldPENopNiUUuMYWB",
+              id: "fldCB4M9WX4ofDKHy",
               name: "Name",
             },
             {
               type: "multilineText",
-              id: "fldfL4ygE2SOSmvr0",
+              id: "fldXemhQhraCWy9zA",
               name: "Notes",
             },
             {
               type: "singleCollaborator",
-              id: "fldixhCUullp8fNKM",
+              id: "fldEbpBsRhClHlYek",
               name: "Assignee",
             },
             {
@@ -40,36 +41,36 @@ describe("AirtableBase", function () {
               options: {
                 choices: [
                   {
-                    id: "selFCNNF1P6HGavWH",
+                    id: "sellIKyVXAgeJC2n8",
                     name: "Todo",
                     color: "redLight2",
                   },
                   {
-                    id: "selzuPNyi4eXEWiaO",
+                    id: "selFIp8DTmQOXcIiP",
                     name: "In progress",
                     color: "yellowLight2",
                   },
                   {
-                    id: "sel1UeIa8NVbLHOCt",
+                    id: "selRqqTk913qOahvn",
                     name: "Done",
                     color: "greenLight2",
                   },
                 ],
               },
-              id: "fldjCCJySccuy6aGh",
+              id: "fldQpJuVCdQGxZzmh",
               name: "Status",
             },
           ],
           views: [
             {
-              id: "viwGezlzUHj53lHtU",
+              id: "viweb85ypN8Z9ZT7F",
               name: "Grid view",
               type: "grid",
               visibleFieldIds: [
-                "fldPENopNiUUuMYWB",
-                "fldfL4ygE2SOSmvr0",
-                "fldixhCUullp8fNKM",
-                "fldjCCJySccuy6aGh",
+                "fldCB4M9WX4ofDKHy",
+                "fldXemhQhraCWy9zA",
+                "fldEbpBsRhClHlYek",
+                "fldQpJuVCdQGxZzmh",
               ],
             },
           ],
@@ -77,7 +78,7 @@ describe("AirtableBase", function () {
       ],
     });
 
-    const base = new Airtable().base("appBoraw3Xf63uBHF");
+    const base = new Airtable().base("appEpvhkjHcG8OvKu");
     const schema = await base.schema(true);
 
     expect(schema).toMatchObject({
