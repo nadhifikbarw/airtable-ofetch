@@ -142,7 +142,7 @@ describe("Airtable", function () {
 
       const airtable = new Airtable({
         noRetryIfRateLimited: { initialDelayMs: 5, maxDelayMs: 10 },
-        requestTimeout: 100,
+        requestTimeout: 50,
       });
       await airtable.$fetch("/meta/whoami");
 
@@ -160,10 +160,13 @@ describe("Airtable", function () {
       );
     });
 
-    test.todo(
-      "throws CONNECTION_ERROR when timeout reached",
-      async function () {}
-    );
+    test("throws CONNECTION_ERROR when timeout reached", async function () {
+      mockResponses(200, undefined, 1000);
+      const airtable = new Airtable({ requestTimeout: 10 });
+      await expect(() => airtable.$fetch("/meta/whoami")).rejects.toMatchObject(
+        { name: "CONNECTION_ERROR" }
+      );
+    });
 
     test("throws AUTHENTICATION_REQUIRED on 401", async function () {
       mockResponses(401);

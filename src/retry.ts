@@ -2,12 +2,13 @@ import type { FetchContext } from "ofetch";
 
 export type RetryDelayFn = (context: FetchContext) => number;
 export interface RetryDelayOption {
+  maxRetries?: number;
   initialDelayMs?: number;
   maxDelayMs?: number;
 }
 
 export function createRetryDelayFn(opts?: RetryDelayOption): RetryDelayFn {
-  const $opts = { initialDelayMs: 5000, maxDelayMs: 60_000, ...opts };
+  const $opts = { initialDelayMs: 1000, maxDelayMs: 45_000, ...opts };
   return function (context) {
     const requestAttempt = context.options.requestAttempt ?? 1;
 
@@ -17,7 +18,6 @@ export function createRetryDelayFn(opts?: RetryDelayOption): RetryDelayFn {
     // Support custom backoff?
     const clippedBackoffTimeMs = Math.min($opts.maxDelayMs, rawBackoffTimeMs);
     const jitteredBackoffTimeMs = Math.random() * clippedBackoffTimeMs;
-    console.log(requestAttempt, jitteredBackoffTimeMs);
     return jitteredBackoffTimeMs;
   };
 }

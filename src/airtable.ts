@@ -76,8 +76,13 @@ export class Airtable {
         Authorization: "Bearer " + this.apiKey,
         ...this.customHeaders,
       },
-      // Perform automatic retry until timeout reached
-      retry: this.noRetryIfRateLimited === true ? false : Infinity,
+      // Perform automatic retry
+      retry:
+        typeof this.noRetryIfRateLimited === "boolean"
+          ? this.noRetryIfRateLimited
+            ? false
+            : Infinity
+          : (this.noRetryIfRateLimited.maxRetries ?? Infinity),
       timeout: this.requestTimeout,
       retryDelay: retryDelayFn,
       retryStatusCodes,
@@ -88,6 +93,7 @@ export class Airtable {
             : ctx.options.requestAttempt + 1;
       },
       onRequestError(ctx) {
+        console.log(ctx);
         throw new AirtableError("CONNECTION_ERROR", ctx.error.message);
       },
       // onResponseError() always getting called before ofetch native hook

@@ -38,13 +38,13 @@ export interface AirtableOptions {
   customHeaders?: CustomHeaders;
 
   /**
-   * Disable exponential backoff with jitter retry behaviour
+   * Disable exponential backoff with jitter retry
    * whenever API request receive 429 status code response
    */
   noRetryIfRateLimited?: boolean | RetryDelayOption;
 
   /**
-   * How long client should wait in ms before aborting fetch attempt.
+   * How long in ms before aborting a request attempt.
    * Default to 5 minutes.
    */
   requestTimeout?: number;
