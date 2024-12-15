@@ -3,6 +3,7 @@ export type MaybePromise<T> = T | PromiseLike<T>;
 export type CustomHeaders = Record<string, string | number | boolean>;
 import type { FetchOptions, FetchRequest, MappedResponseType } from "ofetch";
 import type { AirtableRecord } from "./record";
+import exp from "node:constants";
 
 // --------------------------
 // Options
@@ -24,6 +25,13 @@ export interface AirtableOptions {
    * @optional
    */
   endpointURL?: string;
+
+  /**
+   * Content Endpoint URL target, users may override this if they need
+   * pass requests through an API proxy
+   * @optional
+   */
+  contentEndpointURL?: string;
 
   /**
    * API version that to be included as 'x-api-version' header
@@ -55,6 +63,10 @@ export interface CreateAirtableFetchOptions {
   headers: "resolve" | "replace";
 }
 
+// --------------------------
+// Pagination
+// --------------------------
+
 export type $FetchPaginate = <T = any>(
   request: FetchPaginateRequest,
   options: FetchPaginateOptions<T>
@@ -82,18 +94,19 @@ export type FetchPaginateGetOffsetFn<T = any> = (
 ) => MaybePromise<Record<string, any> | void>;
 
 export interface FetchPaginateHooks<T = any> {
-  /**
-   * callback may return 'false'
-   * to stop next page iteration
-   */
+  /**Return `false` to stop next page iteration*/
   onEachPage: FetchPaginateEachPageFn<T>;
 
   /**
-   * callback provide properties
-   * that should be included for next page request body
+   * Callback to provide parameters
+   * that will be included for next page request
    */
   getOffset?: FetchPaginateGetOffsetFn<T>;
 }
+
+// --------------------------
+// API Options
+// --------------------------
 
 export interface SortOption {
   field: string;
@@ -105,6 +118,11 @@ export type CellFormatOption = "json" | "string";
 export interface GetRecordOptions {
   cellFormat?: CellFormatOption;
   returnFieldsByFieldId?: true;
+}
+
+export interface CreateRecordsOptions {
+  returnFieldsByFieldId?: boolean;
+  typecast?: boolean;
 }
 
 export interface ListRecordsOptions {
@@ -123,12 +141,36 @@ export interface ListRecordsOptions {
 }
 
 /**
- * callback may return 'false'
- * to stop page iteration early
+ * Return `false` to stop page iteration earlier even if more page
+ * available, this might be preferred if you need to iterate records and unable
+ * to control pagination behavior using other pagination parameters such as
+ * maxRecords, filterByFormula, view or etc.
  */
 export type QueryEachPageFn<
   TFields extends FieldSet = Record<string, unknown>,
 > = (records: AirtableRecord<TFields>[]) => MaybePromise<boolean | void>;
+
+/**
+ * PATCH for non-destructive updates, PUT for destructive updates
+ * to clear all unset fields
+ *
+ * {@link https://airtable.com/developers/web/api/update-multiple-records}
+ */
+export type UpdateRecordsMethod = "PATCH" | "PUT";
+
+export interface UpdateRecordOption {
+  returnFieldsByFieldId?: boolean;
+  typecast?: boolean;
+}
+
+export interface UpsertRecordsOptions extends UpdateRecordOption {
+  performUpsert: { fieldsToMergeOn: string[] };
+}
+
+export interface UpdateRecordData<TFields extends FieldSet> {
+  id: string;
+  fields: Partial<TFields>;
+}
 
 // --------------------------
 // Error
@@ -140,7 +182,7 @@ export interface IAirtableError extends Error {
 }
 
 // --------------------------
-// Airtable Types
+// Airtable Response & Format
 // --------------------------
 
 export interface UserInfo {
@@ -148,13 +190,6 @@ export interface UserInfo {
   email?: string;
   scopes?: string[];
 }
-
-export type UserPermissionLevel =
-  | "none"
-  | "read"
-  | "comment"
-  | "edit"
-  | "create";
 
 export interface BaseInfo {
   id: string;
@@ -193,6 +228,52 @@ export interface RecordData<TFields> {
   createdTime: string;
   commentCount?: number;
 }
+
+export interface DeletedData {
+  id: string;
+  deleted: boolean;
+}
+
+export interface UploadAttachmentData {
+  contentType: string;
+  file: string;
+  filename: string;
+}
+
+export type AttachmentRecordData = RecordData<
+  Record<string, ReadonlyArray<Attachment>>
+>;
+
+export interface UpdatedRecordData<TFields extends FieldSet> {
+  records: RecordData<TFields>[];
+}
+
+export interface UpdatedRecords<TFields extends FieldSet> {
+  records: AirtableRecord<TFields>[];
+}
+
+export interface UpsertedRecords<TFields extends FieldSet>
+  extends UpdatedRecords<TFields> {
+  createdRecords?: string[];
+  updatedRecords?: string[];
+}
+
+export interface UpsertedRecordData<TFields extends FieldSet>
+  extends UpdatedRecordData<TFields> {
+  createdRecords?: string[];
+  updatedRecords?: string[];
+}
+
+// --------------------------
+// Airtable Constants
+// --------------------------
+
+export type UserPermissionLevel =
+  | "none"
+  | "read"
+  | "comment"
+  | "edit"
+  | "create";
 
 export type Timezone =
   | "utc"

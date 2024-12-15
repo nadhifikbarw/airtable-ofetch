@@ -19,7 +19,7 @@ import { AirtableError } from "./error";
 import { createRetryDelayFn } from "./retry";
 import { defaultGetOffset, isEmptyObject } from "./utils";
 
-// Prevent key getting included as enumerable property
+// Prevent key being an enumerable property
 // retain security practice from airtable.js implementation
 // read airtable.test.ts
 const $secrets: WeakMap<Airtable, string> = new WeakMap();
@@ -39,12 +39,16 @@ export class Airtable {
   readonly requestTimeout: number;
 
   readonly $fetch: $Fetch;
+  readonly $fetchContent: $Fetch;
   readonly $fetchPaginate: $FetchPaginate;
 
   constructor(opts?: AirtableOptions) {
     const $opts = defu(opts, {
       endpointURL:
         process.env.AIRTABLE_ENDPOINT_URL || "https://api.airtable.com",
+      contentEndpointURL:
+        process.env.AIRTABLE_CONTENT_ENDPOINT_URL ||
+        "https://content.airtable.com",
       apiVersion: "0.1.0",
       apiKey: process.env.AIRTABLE_API_KEY,
       noRetryIfRateLimited: false,
@@ -187,6 +191,10 @@ export class Airtable {
           }
         }
       },
+    });
+
+    this.$fetchContent = this.$fetch.create({
+      baseURL: `${this.endpointUrl}/v${this.apiVersionMajor}`,
     });
 
     this.$fetchPaginate = async <T = any>(

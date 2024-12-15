@@ -1,13 +1,28 @@
 import type { Airtable } from "./airtable";
 import { AirtableTable } from "./table";
-import type { BaseSchema, FieldSet } from "./types";
+import type {
+  AttachmentRecordData,
+  BaseSchema,
+  FieldSet,
+  UploadAttachmentData,
+} from "./types";
 
 export class AirtableBase {
   readonly airtable: Airtable;
   readonly id: string;
 
+  readonly uploadAttachment: (
+    recordId: string,
+    attachmentFieldIdOrName: string,
+    attachment: UploadAttachmentData
+  ) => Promise<AttachmentRecordData>;
+
   get $fetch() {
     return this.airtable.$fetch;
+  }
+
+  get $fetchContent() {
+    return this.airtable.$fetchContent;
   }
 
   get $fetchPaginate() {
@@ -17,6 +32,17 @@ export class AirtableBase {
   constructor(airtable: Airtable, baseId: string) {
     this.airtable = airtable;
     this.id = baseId;
+
+    this.uploadAttachment = async (
+      recordId: string,
+      attachmentFieldIdOrName: string,
+      attachment: UploadAttachmentData
+    ) => {
+      return await this.$fetchContent<AttachmentRecordData>(
+        `${this.encodedResourcePath}/${encodeURIComponent(recordId)}/${encodeURIComponent(attachmentFieldIdOrName)}/uploadAttachment`,
+        { method: "POST", body: attachment }
+      );
+    };
   }
 
   get encodedResourceId() {
