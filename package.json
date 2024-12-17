@@ -1,6 +1,6 @@
 {
   "name": "airtable-fetch",
-  "version": "0.1.0-rc",
+  "version": "0.1.0-rc.1",
   "description": "JS Client for Airtable Web API built on top @unjs/ofetch",
   "repository": "nadhifikbarw/airtable-fetch",
   "license": "MIT",
