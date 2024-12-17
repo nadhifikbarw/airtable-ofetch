@@ -7,7 +7,6 @@ import type {
 } from "./types";
 import { AirtableRecord } from "./record";
 
-// TODO: extend for Comment
 export class AirtableQuery<TFields extends FieldSet> {
   readonly table: AirtableTable<TFields>;
   readonly opts?: ListRecordsOptions;

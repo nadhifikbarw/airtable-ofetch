@@ -4,6 +4,8 @@ import type {
   AttachmentRecordData,
   BaseSchema,
   FieldSet,
+  TableConfig,
+  TableSchema,
   UploadAttachmentData,
 } from "./types";
 
@@ -60,13 +62,20 @@ export class AirtableBase {
   }
 
   async schema(includeVisibleFieldIds: boolean = false) {
-    return await this.airtable.$fetch<BaseSchema>(
+    return await this.$fetch<BaseSchema>(
       `/meta/bases/${this.encodedResourceId}/tables`,
       {
         query: {
           include: includeVisibleFieldIds ? "visibleFieldIds" : undefined,
         },
       }
+    );
+  }
+
+  async createTable(config: TableConfig) {
+    return await this.$fetch<TableSchema>(
+      `/meta/bases/${this.encodedResourceId}/tables`,
+      { method: "POST", body: config }
     );
   }
 }

@@ -5,17 +5,25 @@ import type {
   DeletedData,
   GetRecordOptions,
   ListRecordsOptions,
-  UpdateRecordOption,
+  UpdateRecordOptions,
   UpdateRecordsMethod,
   UpdateRecordData,
+  CreateRecordsOptions,
   UpsertRecordsOptions,
   UpsertedRecordData,
-  CreateRecordsOptions,
   UpdatedRecords,
   UpsertedRecords,
+  UploadAttachmentData,
+  FieldSchema,
+  CreateFieldOptions,
+  UpdateFieldOptions,
+  ListCommentsOptions,
+  CommentData,
 } from "./types";
 import { AirtableQuery } from "./query";
 import { AirtableRecord } from "./record";
+import { AirtableCommentQuery } from "./comment-query";
+import { AirtableComment } from "./comment";
 
 export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
   readonly base: AirtableBase;
@@ -42,6 +50,10 @@ export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
     return `${this.base.encodedResourcePath}/${this.encodedResourceId}`;
   }
 
+  // --------------------------
+  // Records
+  // --------------------------
+
   list(opts?: ListRecordsOptions): AirtableQuery<TFields> {
     return new AirtableQuery<TFields>(this, opts);
   }
@@ -55,7 +67,6 @@ export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
     return record;
   }
 
-  // TODO: cleanup typing
   async create(
     fields: Partial<TFields>,
     opts?: CreateRecordsOptions
@@ -91,12 +102,12 @@ export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
     method: UpdateRecordsMethod,
     recordId: string,
     data?: Partial<TFields>,
-    opts?: UpdateRecordOption
+    opts?: UpdateRecordOptions
   ): Promise<AirtableRecord<TFields>>;
   async update(
     method: UpdateRecordsMethod,
     data: UpdateRecordData<TFields>[],
-    opts?: UpdateRecordOption
+    opts?: UpdateRecordOptions
   ): Promise<UpdatedRecords<TFields>>;
   async update(
     method: UpdateRecordsMethod,
@@ -106,8 +117,8 @@ export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
   async update(
     method: UpdateRecordsMethod,
     recordIdOrData: string | UpdateRecordData<TFields>[],
-    dataOrOpts?: Partial<TFields> | UpdateRecordOption | UpsertRecordsOptions,
-    opts?: UpdateRecordOption | UpsertRecordsOptions
+    dataOrOpts?: Partial<TFields> | UpdateRecordOptions | UpsertRecordsOptions,
+    opts?: UpdateRecordOptions | UpsertRecordsOptions
   ): Promise<
     AirtableRecord<TFields> | UpdatedRecords<TFields> | UpsertedRecords<TFields>
   > {
@@ -116,7 +127,7 @@ export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
     if (isUpdatingMultiple) {
       const response = await this.$fetch<UpsertedRecordData<TFields>>(
         this.encodedResourcePath,
-        { method, body: { ...opts, records: recordIdOrData ?? {} } }
+        { method, body: { ...opts, records: recordIdOrData ?? [] } }
       );
 
       return {
@@ -160,6 +171,73 @@ export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
     return this.$fetch<{ success: boolean }>(
       `${this.encodedResourcePath}/sync/${apiEndpointSyncId}`,
       { method: "POST", headers: { "Content-Type": "text/csv" }, body: data }
+    );
+  }
+
+  async uploadAttachment(
+    recordId: string,
+    attachmentFieldIdOrName: string,
+    attachment: UploadAttachmentData
+  ) {
+    return await this.base.uploadAttachment(
+      recordId,
+      attachmentFieldIdOrName,
+      attachment
+    );
+  }
+
+  // --------------------------
+  // Fields
+  // --------------------------
+
+  async createField(opts: CreateFieldOptions): Promise<FieldSchema> {
+    return await this.$fetch<FieldSchema>(
+      `/meta/bases/${this.base.encodedResourceId}/tables/${this.encodedResourceId}/fields`,
+      { method: "POST", body: opts }
+    );
+  }
+
+  async updateField(
+    columnId: string,
+    opts: UpdateFieldOptions
+  ): Promise<FieldSchema> {
+    return await this.$fetch<FieldSchema>(
+      `/meta/bases/${this.base.encodedResourceId}/tables/${this.encodedResourceId}/fields/${columnId}`,
+      { method: "POST", body: opts }
+    );
+  }
+
+  // --------------------------
+  // Comments, allow performing Comment-related operations directly from Table
+  // --------------------------
+  comments(recordId: string, opts?: ListCommentsOptions) {
+    return new AirtableCommentQuery(this, recordId, opts);
+  }
+
+  async createComment(
+    recordId: string,
+    text: string,
+    parentCommentId?: string
+  ) {
+    const data = await this.$fetch<CommentData>(
+      `${this.encodedResourcePath}/${encodeURIComponent(recordId)}/comments`,
+      { method: "POST", body: { text, parentCommentId } }
+    );
+    return new AirtableComment(this, recordId, data);
+  }
+
+  async updateComment(recordId: string, rowCommentId: string, text: string) {
+    const data = await this.$fetch<CommentData>(
+      `${this.encodedResourcePath}/${encodeURIComponent(recordId)}/comments/${encodeURIComponent(rowCommentId)}`,
+      { method: "PATCH", body: { text } }
+    );
+    return new AirtableComment(this, recordId, data);
+  }
+
+  async deleteComment(recordId: string, rowCommentId: string) {
+    return await this.$fetch<DeletedData>(
+      `${this.encodedResourcePath}/${recordId}/comments/${rowCommentId}`,
+      { method: "DELETE" }
     );
   }
 }

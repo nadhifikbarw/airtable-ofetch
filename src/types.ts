@@ -2,8 +2,8 @@ import type { RetryDelayOption } from "./retry";
 export type MaybePromise<T> = T | PromiseLike<T>;
 export type CustomHeaders = Record<string, string | number | boolean>;
 import type { FetchOptions, FetchRequest, MappedResponseType } from "ofetch";
+import type { AirtableComment } from "./comment";
 import type { AirtableRecord } from "./record";
-import exp from "node:constants";
 
 // --------------------------
 // Options
@@ -158,12 +158,12 @@ export type QueryEachPageFn<
  */
 export type UpdateRecordsMethod = "PATCH" | "PUT";
 
-export interface UpdateRecordOption {
+export interface UpdateRecordOptions {
   returnFieldsByFieldId?: boolean;
   typecast?: boolean;
 }
 
-export interface UpsertRecordsOptions extends UpdateRecordOption {
+export interface UpsertRecordsOptions extends UpdateRecordOptions {
   performUpsert: { fieldsToMergeOn: string[] };
 }
 
@@ -171,6 +171,27 @@ export interface UpdateRecordData<TFields extends FieldSet> {
   id: string;
   fields: Partial<TFields>;
 }
+
+export interface CreateFieldOptions {
+  name: string;
+  type: FieldType;
+  description?: string;
+  options?: Record<string, any>;
+}
+
+export interface UpdateFieldOptions {
+  name: string;
+  description?: string;
+}
+
+export interface ListCommentsOptions {
+  pageSize?: number;
+  offset?: string;
+}
+
+export type CommentsQueryEachPageFn = (
+  comments: AirtableComment[]
+) => MaybePromise<boolean | void>;
 
 // --------------------------
 // Error
@@ -197,8 +218,28 @@ export interface BaseInfo {
   permissionLevel: UserPermissionLevel;
 }
 
+export interface BaseConfig {
+  name: string;
+  workspaceId: string;
+  tables: TableConfig[];
+}
+
 export interface BaseSchema {
   tables: TableSchema[];
+}
+
+export interface TableConfig {
+  name: string;
+  description?: string;
+  fields: FieldOptions;
+}
+
+export interface FieldSchema {
+  id: string;
+  type?: FieldType;
+  name: string;
+  description: string;
+  options: FieldOptions;
 }
 
 export interface TableSchema {
@@ -206,13 +247,7 @@ export interface TableSchema {
   primaryFieldId: string;
   name: string;
   description?: string;
-  fields: {
-    id: string;
-    type?: FieldType;
-    name: string;
-    description: string;
-    options: FieldOptions;
-  }[];
+  fields: FieldSchema[];
   views: {
     id: string;
     type: ViewType;
@@ -262,6 +297,49 @@ export interface UpsertedRecordData<TFields extends FieldSet>
   extends UpdatedRecordData<TFields> {
   createdRecords?: string[];
   updatedRecords?: string[];
+}
+
+export interface UserMention {
+  id: string;
+  type: string;
+  displayName: string;
+  email: string;
+}
+
+export interface UserGroupMention {
+  id: string;
+  type: string;
+  displayName: string;
+}
+
+export type Mention = UserMention | UserGroupMention;
+
+export interface ReactingUser {
+  userId: string;
+  email: string;
+  name?: string;
+}
+
+export interface Reaction {
+  emoji: { unicodeCharacter: string };
+  reactingUser: ReactingUser;
+}
+
+export interface CommentAuthor {
+  id: string;
+  email: string;
+  name?: string;
+}
+
+export interface CommentData {
+  id: string;
+  createdTime: string;
+  lastUpdatedTime: string | null;
+  text: string;
+  parentCommentId: string;
+  mentioned?: Record<string, Mention>;
+  reactions: Reaction[];
+  author: CommentAuthor;
 }
 
 // --------------------------

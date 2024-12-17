@@ -2,8 +2,9 @@ import type { AirtableTable } from "./table";
 import type {
   FieldSet,
   GetRecordOptions,
+  ListCommentsOptions,
   RecordData,
-  UpdateRecordOption,
+  UpdateRecordOptions,
   UploadAttachmentData,
 } from "./types";
 
@@ -29,6 +30,10 @@ export class AirtableRecord<
 
   get $fetch() {
     return this.table.$fetch;
+  }
+
+  get $fetchPaginate() {
+    return this.table.$fetchPaginate;
   }
 
   constructor(table: AirtableTable<TFields>, recordId: string) {
@@ -57,6 +62,13 @@ export class AirtableRecord<
     return rec;
   }
 
+  setData(data: RecordData<TFields>) {
+    this._data = data;
+    this.fields = data.fields;
+    this.createdTime = new Date(data.createdTime);
+    if (data.commentCount) this.commentCount = data.commentCount;
+  }
+
   get<Field extends keyof TFields>(
     columnNameOrId: Field
   ): TFields[Field] | undefined {
@@ -75,39 +87,27 @@ export class AirtableRecord<
       this.encodedResourcePath,
       { method: "GET", query: opts }
     );
-
-    this._data = data;
-    this.fields = data.fields;
-    this.createdTime = new Date(data.createdTime);
-    if (data.commentCount) this.commentCount = data.commentCount;
+    this.setData(data);
   }
 
-  async save(opts?: UpdateRecordOption) {
+  async save(opts?: UpdateRecordOptions) {
     await this.putUpdate(this.fields ?? {}, opts);
   }
 
-  async patchUpdate(fields: Partial<TFields>, opts?: UpdateRecordOption) {
+  async patchUpdate(fields: Partial<TFields>, opts?: UpdateRecordOptions) {
     const data = await this.$fetch<RecordData<TFields>>(
       this.encodedResourcePath,
       { method: "PATCH", body: { ...opts, fields } }
     );
-
-    this._data = data;
-    this.fields = data.fields;
-    this.createdTime = new Date(data.createdTime);
-    if (data.commentCount) this.commentCount = data.commentCount;
+    this.setData(data);
   }
 
-  async putUpdate(fields: Partial<TFields>, opts?: UpdateRecordOption) {
+  async putUpdate(fields: Partial<TFields>, opts?: UpdateRecordOptions) {
     const data = await this.$fetch<RecordData<TFields>>(
       this.encodedResourcePath,
       { method: "PUT", body: { ...opts, fields } }
     );
-
-    this._data = data;
-    this.fields = data.fields;
-    this.createdTime = new Date(data.createdTime);
-    if (data.commentCount) this.commentCount = data.commentCount;
+    this.setData(data);
   }
 
   async delete() {
@@ -120,16 +120,26 @@ export class AirtableRecord<
     attachmentFieldIdOrName: string,
     attachment: UploadAttachmentData
   ) {
-    return await this.table.base.uploadAttachment(
+    return await this.table.uploadAttachment(
       this.id,
       attachmentFieldIdOrName,
       attachment
     );
   }
 
-  // TODO
-  async comments() {}
-  async createComment() {}
-  async updateComment() {}
-  async deleteComment() {}
+  comments(opts?: ListCommentsOptions) {
+    return this.table.comments(this.id, opts);
+  }
+
+  async createComment(text: string, parentCommentId?: string) {
+    return await this.table.createComment(this.id, text, parentCommentId);
+  }
+
+  async updateComment(rowCommentId: string, text: string) {
+    return await this.table.updateComment(this.id, rowCommentId, text);
+  }
+
+  async deleteComment(rowCommentId: string) {
+    return await this.table.deleteComment(this.id, rowCommentId);
+  }
 }

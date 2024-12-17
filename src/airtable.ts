@@ -3,12 +3,14 @@ import type { RetryDelayOption } from "./retry";
 import type {
   $FetchPaginate,
   AirtableOptions,
+  BaseConfig,
   BaseInfo,
   CreateAirtableFetchOptions,
   CustomHeaders,
   FetchPaginateContext,
   FetchPaginateOptions,
   FetchPaginateRequest,
+  TableSchema,
   UserInfo,
 } from "./types";
 
@@ -281,5 +283,12 @@ export class Airtable {
       },
     });
     return result;
+  }
+
+  async createBase(config: BaseConfig) {
+    return await this.$fetch<{ id: string; tables: TableSchema[] }>(
+      "/meta/bases",
+      { method: "POST", body: config }
+    );
   }
 }
