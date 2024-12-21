@@ -150,6 +150,10 @@ export type QueryEachPageFn<
   TFields extends FieldSet = Record<string, unknown>,
 > = (records: AirtableRecord<TFields>[]) => MaybePromise<boolean | void>;
 
+export interface CreateRecordData<TFields extends FieldSet> {
+  fields: Partial<TFields>;
+}
+
 /**
  * PATCH for non-destructive updates, PUT for destructive updates
  * to clear all unset fields
@@ -172,12 +176,7 @@ export interface UpdateRecordData<TFields extends FieldSet> {
   fields: Partial<TFields>;
 }
 
-export interface CreateFieldOptions {
-  name: string;
-  type: FieldType;
-  description?: string;
-  options?: Record<string, any>;
-}
+export type CreateFieldOptions = FieldConfig;
 
 export interface UpdateFieldOptions {
   name: string;
@@ -231,14 +230,21 @@ export interface BaseSchema {
 export interface TableConfig {
   name: string;
   description?: string;
-  fields: FieldOptions;
+  fields: FieldConfig[];
+}
+
+export interface FieldConfig {
+  name: string;
+  type: FieldType;
+  description?: string;
+  options?: FieldOptions;
 }
 
 export interface FieldSchema {
   id: string;
   type?: FieldType;
   name: string;
-  description: string;
+  description?: string;
   options: FieldOptions;
 }
 
@@ -279,7 +285,15 @@ export type AttachmentRecordData = RecordData<
   Record<string, ReadonlyArray<Attachment>>
 >;
 
-export interface UpdatedRecordData<TFields extends FieldSet> {
+export interface CreatedRecordsData<TFields extends FieldSet> {
+  records: RecordData<TFields>[];
+}
+
+export interface CreatedRecords<TFields extends FieldSet> {
+  records: AirtableRecord<TFields>[];
+}
+
+export interface UpdatedRecordsData<TFields extends FieldSet> {
   records: RecordData<TFields>[];
 }
 
@@ -294,7 +308,7 @@ export interface UpsertedRecords<TFields extends FieldSet>
 }
 
 export interface UpsertedRecordData<TFields extends FieldSet>
-  extends UpdatedRecordData<TFields> {
+  extends UpdatedRecordsData<TFields> {
   createdRecords?: string[];
   updatedRecords?: string[];
 }
@@ -883,6 +897,8 @@ export interface Attachment {
   filename: string;
   size: number;
   type: string;
+  height?: number;
+  width?: number;
   thumbnails?: {
     small: Thumbnail;
     large: Thumbnail;

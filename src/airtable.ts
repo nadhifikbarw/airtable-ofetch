@@ -37,6 +37,7 @@ export class Airtable {
   readonly apiVersionMajor: string;
   readonly customHeaders: CustomHeaders | undefined;
   readonly endpointUrl: string;
+  readonly contentEndpointUrl: string;
   readonly noRetryIfRateLimited: boolean | RetryDelayOption;
   readonly requestTimeout: number;
 
@@ -62,6 +63,7 @@ export class Airtable {
 
     $secrets.set(this, $opts.apiKey);
     this.endpointUrl = $opts.endpointURL;
+    this.contentEndpointUrl = $opts.contentEndpointURL;
     this.apiVersion = $opts.apiVersion;
     this.apiVersionMajor = $opts.apiVersion.split(".")[0];
     this.noRetryIfRateLimited = $opts.noRetryIfRateLimited;
@@ -73,8 +75,7 @@ export class Airtable {
         ? this.noRetryIfRateLimited
           ? 0
           : createRetryDelayFn()
-        : /* v8 ignore next */
-          createRetryDelayFn(this.noRetryIfRateLimited);
+        : createRetryDelayFn(this.noRetryIfRateLimited);
 
     const retryStatusCodes = [429];
 
@@ -196,7 +197,7 @@ export class Airtable {
     });
 
     this.$fetchContent = this.$fetch.create({
-      baseURL: `${this.endpointUrl}/v${this.apiVersionMajor}`,
+      baseURL: `${this.contentEndpointUrl}/v${this.apiVersionMajor}`,
     });
 
     this.$fetchPaginate = async <T = any>(

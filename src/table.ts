@@ -19,6 +19,9 @@ import type {
   UpdateFieldOptions,
   ListCommentsOptions,
   CommentData,
+  CreateRecordData,
+  CreatedRecords,
+  CreatedRecordsData,
 } from "./types";
 import { AirtableQuery } from "./query";
 import { AirtableRecord } from "./record";
@@ -72,13 +75,13 @@ export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
     opts?: CreateRecordsOptions
   ): Promise<AirtableRecord<TFields>>;
   async create(
-    records: Partial<TFields>[],
+    records: CreateRecordData<TFields>[],
     opts?: CreateRecordsOptions
-  ): Promise<AirtableRecord<TFields>[]>;
+  ): Promise<CreatedRecords<TFields>>;
   async create(
-    records: Partial<TFields> | Partial<TFields>[],
+    records: Partial<TFields> | CreateRecordData<TFields>[],
     opts?: CreateRecordsOptions
-  ): Promise<AirtableRecord<TFields> | AirtableRecord<TFields>[]> {
+  ): Promise<AirtableRecord<TFields> | CreatedRecords<TFields>> {
     // Perform fetch requests
     const isCreatingMultiple = Array.isArray(records);
     const body = {
@@ -92,9 +95,11 @@ export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
     });
 
     return isCreatingMultiple
-      ? (data as { records: RecordData<TFields>[] })?.records.map((rec) =>
-          AirtableRecord.fromData(this, rec)
-        )
+      ? {
+          records: (data as CreatedRecordsData<TFields>)?.records.map((rec) =>
+            AirtableRecord.fromData(this, rec)
+          ),
+        }
       : AirtableRecord.fromData(this, data as RecordData<TFields>);
   }
 
@@ -203,7 +208,7 @@ export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
   ): Promise<FieldSchema> {
     return await this.$fetch<FieldSchema>(
       `/meta/bases/${this.base.encodedResourceId}/tables/${this.encodedResourceId}/fields/${columnId}`,
-      { method: "POST", body: opts }
+      { method: "PATCH", body: opts }
     );
   }
 
