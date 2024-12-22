@@ -22,6 +22,6 @@ export class AirtableError<T = any> extends Error implements IAirtableError {
   }
 
   toString() {
-    return `${this.name}: ${this.message} ${this.statusCode ? `(${this.statusCode})` : ""}}`;
+    return `${this.name}: ${this.message} ${this.statusCode ? `(${this.statusCode})` : ""}`;
   }
 }

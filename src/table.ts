@@ -22,6 +22,7 @@ import type {
   CreateRecordData,
   CreatedRecords,
   CreatedRecordsData,
+  UpsertRecordData,
 } from "./types";
 import { AirtableQuery } from "./query";
 import { AirtableRecord } from "./record";
@@ -116,12 +117,15 @@ export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
   ): Promise<UpdatedRecords<TFields>>;
   async update(
     method: UpdateRecordsMethod,
-    data: UpdateRecordData<TFields>[],
+    data: UpsertRecordData<TFields>[],
     opts?: UpsertRecordsOptions
   ): Promise<UpsertedRecords<TFields>>;
   async update(
     method: UpdateRecordsMethod,
-    recordIdOrData: string | UpdateRecordData<TFields>[],
+    recordIdOrData:
+      | string
+      | UpdateRecordData<TFields>[]
+      | UpsertRecordData<TFields>[],
     dataOrOpts?: Partial<TFields> | UpdateRecordOptions | UpsertRecordsOptions,
     opts?: UpdateRecordOptions | UpsertRecordsOptions
   ): Promise<
@@ -132,7 +136,7 @@ export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
     if (isUpdatingMultiple) {
       const response = await this.$fetch<UpsertedRecordData<TFields>>(
         this.encodedResourcePath,
-        { method, body: { ...opts, records: recordIdOrData ?? [] } }
+        { method, body: { ...dataOrOpts, records: recordIdOrData } }
       );
 
       return {
@@ -164,7 +168,7 @@ export class AirtableTable<TFields extends FieldSet = Record<string, unknown>> {
       : `${this.encodedResourcePath}/${encodeURIComponent(recordIds)}`;
 
     return await this.$fetch(req, {
-      body: isDeletingMultiple ? { records: recordIds } : undefined,
+      query: isDeletingMultiple ? { records: recordIds } : undefined,
       method: "DELETE",
     });
   }

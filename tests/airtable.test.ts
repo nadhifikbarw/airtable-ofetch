@@ -386,18 +386,31 @@ describe("Airtable", function () {
       );
     });
 
-    test("AirtableError#toString() contains statusCode", async function () {
+    test("AirtableError without response details", async function () {
+      vi.stubGlobal("fetch", () => Promise.reject(new Error("Network Error")));
+
+      try {
+        const airtable = new Airtable();
+        await airtable.$fetch("/meta/whoami");
+      } catch (error) {
+        if (error instanceof AirtableError) {
+          expect(error.statusCode).toEqual(undefined);
+          expect(error.toString()).not.toContain("(");
+        }
+      }
+    });
+
+    test("AirtableError with response details", async function () {
       mockResponses(404);
       const airtable = new Airtable();
-      await expect(async () => {
-        try {
-          await airtable.$fetch("/meta/whoami");
-        } catch (error) {
-          if (error instanceof AirtableError) {
-            throw error.toString();
-          }
+      try {
+        await airtable.$fetch("/meta/whoami");
+      } catch (error) {
+        if (error instanceof AirtableError) {
+          expect(error.statusCode).toEqual(404);
+          expect(error.toString()).toContain("404");
         }
-      }).rejects.toContain("404");
+      }
     });
 
     describe("$fetchPaginate", function () {

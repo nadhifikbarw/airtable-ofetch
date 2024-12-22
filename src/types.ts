@@ -176,6 +176,11 @@ export interface UpdateRecordData<TFields extends FieldSet> {
   fields: Partial<TFields>;
 }
 
+export interface UpsertRecordData<TFields extends FieldSet> {
+  id?: string;
+  fields: Partial<TFields>;
+}
+
 export type CreateFieldOptions = FieldConfig;
 
 export interface UpdateFieldOptions {
