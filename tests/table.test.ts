@@ -259,7 +259,7 @@ describe("AirtableTable", function () {
     });
   });
 
-  test("Get records - /:baseId/:tableId/:recordId", async function () {
+  test("Get record - /:baseId/:tableId/:recordId", async function () {
     mockResponses(200, {
       id: "recPaibwSLDbZr80V",
       createdTime: "2024-12-15T04:20:33.000Z",
