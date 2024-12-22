@@ -32,10 +32,6 @@ export class AirtableRecord<
     return this.table.$fetch;
   }
 
-  get $fetchPaginate() {
-    return this.table.$fetchPaginate;
-  }
-
   constructor(table: AirtableTable<TFields>, recordId: string) {
     this.table = table;
     this.id = recordId;
@@ -91,7 +87,7 @@ export class AirtableRecord<
   }
 
   async save(opts?: UpdateRecordOptions) {
-    await this.putUpdate(this.fields ?? {}, opts);
+    await this.putUpdate(this.fields, opts);
   }
 
   async patchUpdate(fields: Partial<TFields>, opts?: UpdateRecordOptions) {

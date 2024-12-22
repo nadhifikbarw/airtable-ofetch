@@ -1,8 +1,10 @@
 import { describe, expect, test, vi } from "vitest";
 import { ofetch } from "ofetch";
 import { mockResponses } from "./utils";
-import { Airtable } from "../src/airtable";
+import { Airtable } from "../src/index";
 import { AirtableBase } from "../src/base";
+import packageJson from "../package.json";
+import { AirtableError } from "../src/error";
 
 describe("Airtable", function () {
   test("load API key from environment variable", function () {
@@ -34,6 +36,45 @@ describe("Airtable", function () {
     expect(airtable.endpointUrl).toEqual(process.env.AIRTABLE_ENDPOINT_URL);
   });
 
+  test("create instance with some new configuration", function () {
+    const airtable = new Airtable({ requestTimeout: 5000 * 1000 });
+    const newAirtable = airtable.create({ apiKey: "otherKey" });
+
+    // Test for inherited config
+    expect(newAirtable.requestTimeout).toEqual(5000 * 1000);
+    // Test for replaced config
+    expect(newAirtable.apiKey).toEqual("otherKey");
+  });
+
+  test("create new instance with resolved custom headers", function () {
+    const headers = {
+      "user-agent": `airtable-fetch/${packageJson.version}`,
+      "cache-control": "no-cache",
+    };
+
+    const airtable = new Airtable({
+      customHeaders: { "user-agent": headers["user-agent"] },
+    });
+    const newAirtable = airtable.create(
+      { customHeaders: { "cache-control": headers["cache-control"] } },
+      { headers: "resolve" }
+    );
+    expect(newAirtable.customHeaders).toEqual(headers);
+  });
+
+  test("create new instance with replaced custom headers", function () {
+    const airtable = new Airtable({
+      customHeaders: { "user-agent": `airtable-fetch/${packageJson.version}` },
+    });
+    const newAirtable = airtable.create(
+      { customHeaders: { "user-agent": "airtable-fetch" } },
+      { headers: "replace" }
+    );
+    expect(newAirtable.customHeaders).toEqual({
+      "user-agent": "airtable-fetch",
+    });
+  });
+
   test("/meta/whoami", async function () {
     const data = { id: "usrL2PNC5o3H4lBEi", email: "foo@bar.com" };
     mockResponses(200, data);
@@ -46,7 +87,7 @@ describe("Airtable", function () {
     expect(userInfo).toHaveProperty("scopes");
   });
 
-  test("/meta/bases", async function () {
+  test("List bases - /meta/bases", async function () {
     const responses = [
       {
         offset: "offset1",
@@ -93,6 +134,57 @@ describe("Airtable", function () {
       id: expect.any(String),
       name: expect.any(String),
       permissionLevel: expect.any(String),
+    });
+  });
+
+  test("Create new base - /meta/bases", async function () {
+    mockResponses(200, {
+      id: "appc3aUbML8PZBqjA",
+      tables: [
+        {
+          id: "tblp3f4B23vZSPRIM",
+          name: "Table 1",
+          primaryFieldId: "fld5Bhc6wm7M1DETy",
+          fields: [
+            { id: "fld5Bhc6wm7M1DETy", type: "singleLineText", name: "Name" },
+          ],
+          views: [{ id: "viweb85ypN8Z9ZT7F", type: "grid", name: "Grid view" }],
+        },
+      ],
+    });
+
+    const airtable = new Airtable();
+    const response = await airtable.createBase({
+      name: "Base from API",
+      workspaceId: "wspN69Qh9ScQVnTud",
+      tables: [
+        { name: "Table 1", fields: [{ name: "Name", type: "singleLineText" }] },
+      ],
+    });
+
+    expect(response).toMatchObject({
+      id: expect.any(String),
+      tables: expect.arrayContaining([
+        expect.objectContaining({
+          id: expect.any(String),
+          primaryFieldId: expect.any(String),
+          name: expect.any(String),
+          fields: expect.arrayContaining([
+            expect.objectContaining({
+              id: expect.any(String),
+              type: expect.any(String),
+              name: expect.any(String),
+            }),
+          ]),
+          views: expect.arrayContaining([
+            expect.objectContaining({
+              id: expect.any(String),
+              type: expect.any(String),
+              name: expect.any(String),
+            }),
+          ]),
+        }),
+      ]),
     });
   });
 
@@ -202,8 +294,24 @@ describe("Airtable", function () {
     });
 
     test("throws UNPROCESSABLE_ENTITY on 422", async function () {
+      mockResponses(422);
+
+      const airtable = new Airtable();
+      await expect(() =>
+        airtable.$fetch("/meta/bases", { method: "POST" })
+      ).rejects.toMatchObject({
+        name: expect.any(String),
+        message: expect.any(String),
+        statusCode: 422,
+      });
+    });
+
+    test("throws UNPROCESSABLE_ENTITY on 422 with body", async function () {
       mockResponses(422, {
-        error: { type: "INVALID_REQUEST", message: "Server error" },
+        error: {
+          type: "UNPROCESSABLE_ENTITY",
+          message: "Unable to process request",
+        },
       });
 
       const airtable = new Airtable();
@@ -262,6 +370,93 @@ describe("Airtable", function () {
           statusCode: expect.any(Number),
         }
       );
+    });
+
+    test("throws generic exception when status code >=400 and <600 with body", async function () {
+      mockResponses(400, {
+        error: { type: "INVALID_REQUEST", message: "Bad Request" },
+      });
+      const airtable = new Airtable();
+      await expect(() => airtable.$fetch("/meta/whoami")).rejects.toMatchObject(
+        {
+          name: expect.any(String),
+          message: expect.any(String),
+          statusCode: expect.any(Number),
+        }
+      );
+    });
+
+    test("AirtableError without response details", async function () {
+      vi.stubGlobal("fetch", () => Promise.reject(new Error("Network Error")));
+
+      try {
+        const airtable = new Airtable();
+        await airtable.$fetch("/meta/whoami");
+      } catch (error) {
+        if (error instanceof AirtableError) {
+          expect(error.statusCode).toEqual(undefined);
+          expect(error.toString()).not.toContain("(");
+        }
+      }
+    });
+
+    test("AirtableError with response details", async function () {
+      mockResponses(404);
+      const airtable = new Airtable();
+      try {
+        await airtable.$fetch("/meta/whoami");
+      } catch (error) {
+        if (error instanceof AirtableError) {
+          expect(error.statusCode).toEqual(404);
+          expect(error.toString()).toContain("404");
+        }
+      }
+    });
+
+    describe("$fetchPaginate", function () {
+      test("specifcy custom getOffset()", async function () {
+        mockResponses(200, [
+          {
+            offset: "offset1",
+            bases: [
+              // Up to 1000 bases on first page
+              { id: "base1", name: "Mocked Base 1", permissionLevel: "create" },
+              { id: "base2", name: "Mocked Base 2", permissionLevel: "create" },
+              { id: "base3", name: "Mocked Base 3", permissionLevel: "create" },
+            ],
+          },
+          {
+            bases: [
+              {
+                id: "base1001",
+                name: "Mocked Base 1001",
+                permissionLevel: "create",
+              },
+              {
+                id: "base1002",
+                name: "Mocked Base 1002",
+                permissionLevel: "create",
+              },
+              {
+                id: "base1003",
+                name: "Mocked Base 1003",
+                permissionLevel: "create",
+              },
+            ],
+          },
+        ]);
+
+        const airtable = new Airtable();
+        const customGetOffset = vi.fn((ctx) => {
+          return { offset: ctx.response?.offset };
+        });
+
+        await airtable.$fetchPaginate("/meta/bases", {
+          getOffset: customGetOffset,
+          onEachPage: () => true,
+        });
+        expect(customGetOffset).toHaveBeenCalled();
+      });
     });
   });
 });
