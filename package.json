@@ -1,6 +1,6 @@
 {
   "name": "airtable-ofetch",
-  "version": "0.1.0-rc.1",
+  "version": "0.1.0",
   "description": "JS Client for Airtable Web API built on top @unjs/ofetch",
   "repository": "nadhifikbarw/airtable-ofetch",
   "license": "MIT",
@@ -17,8 +17,9 @@
     "build": "unbuild",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . && prettier -c src tests",
-    "test": "pnpm lint && vitest run --coverage",
     "lint:fix": "eslint --fix . && prettier -w src tests",
+    "release": "pnpm test && changelogen --release && npm publish && git push --follow-tags",
+    "test": "pnpm lint && vitest run --coverage",
     "prepack": "pnpm build"
   },
   "main": "./dist/index.cjs",
@@ -27,11 +28,15 @@
   "files": [
     "dist"
   ],
+  "dependencies": {
+    "defu": "^6.1.4",
+    "ofetch": "^1.4.1"
+  },
   "devDependencies": {
-    "@changesets/cli": "^2.27.11",
     "@types/node": "^22.10.1",
     "@vitest/coverage-v8": "^2.1.8",
     "@vitest/eslint-plugin": "^1.1.16",
+    "changelogen": "^0.5.7",
     "eslint": "^9.16.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-unjs": "^0.4.2",
@@ -40,8 +45,5 @@
     "unbuild": "^3.0.1",
     "vitest": "^2.1.8"
   },
-  "dependencies": {
-    "defu": "^6.1.4",
-    "ofetch": "^1.4.1"
-  }
+  "packageManager": "pnpm@9.15.1"
 }
