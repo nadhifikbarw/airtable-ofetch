@@ -6,9 +6,10 @@
     "moduleResolution": "Node",
     "verbatimModuleSyntax": true,
     "esModuleInterop": true,
-    "outDir": "dist",
-    "strict": true,
-    "declaration": true
+    "skipLibCheck": true,
+    "declaration": true,
+    "noEmit": true,
+    "strict": true
   },
   "include": ["src"]
 }

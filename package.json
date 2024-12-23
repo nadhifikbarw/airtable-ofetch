@@ -15,6 +15,7 @@
   "scripts": {
     "dev": "vitest",
     "build": "unbuild",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint . && prettier -c src tests",
     "test": "pnpm lint && vitest run --coverage",
     "lint:fix": "eslint --fix . && prettier -w src tests",
@@ -23,8 +24,11 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
+    "@changesets/cli": "^2.27.11",
     "@types/node": "^22.10.1",
     "@vitest/coverage-v8": "^2.1.8",
     "@vitest/eslint-plugin": "^1.1.16",
