@@ -1,5 +1,11 @@
 # airtable-ofetch
 
+[![npm](https://img.shields.io/npm/v/airtable-ofetch)](https://www.npmjs.com/package/airtable-ofetch)
+[![codecov](https://codecov.io/gh/nadhifikbarw/airtable-ofetch/graph/badge.svg?token=JPXQFLCNS2)](https://codecov.io/gh/nadhifikbarw/airtable-ofetch)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![jsDocs.io](https://img.shields.io/badge/jsDocs.io-reference-blue)](https://www.jsdocs.io/package/airtable-ofetch)
+
+
 Modern JS client for [Airtable Web API](https://airtable.com/developers/web/api/introduction)
 
 ## 🚀 Quick Start
