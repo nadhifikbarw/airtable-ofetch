@@ -21,40 +21,52 @@ export interface AirtableOptions {
 
   /**
    * API Endpoint URL target, users may override this if they need
-   * pass requests through an API proxy
+   * to pass requests through an API proxy. Don't include trailing slash
+   * for consistency.
+   *
    * @optional
    */
   endpointURL?: string;
 
   /**
    * Content Endpoint URL target, users may override this if they need
-   * pass requests through an API proxy
+   * to pass requests through an API proxy. Don't include trailing slash
+   * for consistency.
+   *
+   * @see https://airtable.com/developers/web/api/upload-attachment
    * @optional
    */
   contentEndpointURL?: string;
 
   /**
-   * API version that to be included as 'x-api-version' header
-   * and to determine API major version
+   * API version that to be included as 'x-api-version'
+   * header and to determine API major version
+   *
    * @optional
    */
   apiVersion?: string;
 
   /**
    * Custom headers to be included when requesting to API endpoint
+   *
    * @optional
    */
   customHeaders?: CustomHeaders;
 
   /**
-   * Disable exponential backoff with jitter retry
+   * Disable / configure exponential backoff with jitter retry
    * whenever API request receive 429 status code response
+   *
+   * @see https://airtable.com/developers/web/api/rate-limits
+   * @optional
    */
   noRetryIfRateLimited?: boolean | RetryDelayOption;
 
   /**
    * How long in ms before aborting a request attempt.
    * Default to 5 minutes.
+   *
+   * @optional
    */
   requestTimeout?: number;
 }

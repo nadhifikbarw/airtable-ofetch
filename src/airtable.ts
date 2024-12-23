@@ -55,7 +55,7 @@ export class Airtable {
       apiVersion: "0.1.0",
       apiKey: process.env.AIRTABLE_API_KEY,
       noRetryIfRateLimited: false,
-      requestTimeout: 300 * 1000, // $ minutes
+      requestTimeout: 300 * 1000, // 5 minutes
     } satisfies AirtableOptions);
     if (!$opts.apiKey) {
       throw new Error("An API key is required to connect to Airtable");
@@ -83,6 +83,7 @@ export class Airtable {
       baseURL: `${this.endpointUrl}/v${this.apiVersionMajor}`,
       headers: {
         Authorization: "Bearer " + this.apiKey,
+        "x-api-version": this.apiVersion,
         ...this.customHeaders,
       },
       // Perform automatic retry

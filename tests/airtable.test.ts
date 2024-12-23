@@ -71,7 +71,7 @@ describe("Airtable", function () {
       { headers: "replace" }
     );
     expect(newAirtable.customHeaders).toEqual({
-      "user-agent": "airtable-pfetch",
+      "user-agent": "airtable-ofetch",
     });
   });
 
