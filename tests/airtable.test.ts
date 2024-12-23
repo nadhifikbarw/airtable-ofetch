@@ -48,7 +48,7 @@ describe("Airtable", function () {
 
   test("create new instance with resolved custom headers", function () {
     const headers = {
-      "user-agent": `airtable-fetch/${packageJson.version}`,
+      "user-agent": `airtable-ofetch/${packageJson.version}`,
       "cache-control": "no-cache",
     };
 
@@ -64,14 +64,14 @@ describe("Airtable", function () {
 
   test("create new instance with replaced custom headers", function () {
     const airtable = new Airtable({
-      customHeaders: { "user-agent": `airtable-fetch/${packageJson.version}` },
+      customHeaders: { "user-agent": `airtable-ofetch/${packageJson.version}` },
     });
     const newAirtable = airtable.create(
-      { customHeaders: { "user-agent": "airtable-fetch" } },
+      { customHeaders: { "user-agent": "airtable-ofetch" } },
       { headers: "replace" }
     );
     expect(newAirtable.customHeaders).toEqual({
-      "user-agent": "airtable-fetch",
+      "user-agent": "airtable-pfetch",
     });
   });
 
