@@ -1,6 +1,30 @@
 # Changelog
 
 
+## v0.1.2
+
+[compare changes](https://github.com/nadhifikbarw/airtable-ofetch/compare/v0.1.1...v0.1.2)
+
+### 🩹 Fixes
+
+- Export more types ([efa42d3](https://github.com/nadhifikbarw/airtable-ofetch/commit/efa42d3))
+
+### 📖 Documentation
+
+- Add badges ([6ef5a71](https://github.com/nadhifikbarw/airtable-ofetch/commit/6ef5a71))
+
+### 🏡 Chore
+
+- **config:** Migrate config renovate.json ([6eb4344](https://github.com/nadhifikbarw/airtable-ofetch/commit/6eb4344))
+
+### 🤖 CI
+
+- Add renovate ([98a79f5](https://github.com/nadhifikbarw/airtable-ofetch/commit/98a79f5))
+
+### ❤️ Contributors
+
+- Nadhifikbarw ([@nadhifikbarw](http://github.com/nadhifikbarw))
+
 ## v0.1.1
 
 [compare changes](https://github.com/nadhifikbarw/airtable-ofetch/compare/v0.1.0...v0.1.1)
