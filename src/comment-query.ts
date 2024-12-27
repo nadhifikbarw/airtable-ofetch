@@ -23,7 +23,7 @@ export class AirtableCommentQuery {
   ) {
     this.table = table;
     this.recordId = recordId;
-    if (this.opts) this.opts = opts;
+    if (opts) this.opts = opts;
   }
 
   async firstPage() {
@@ -74,9 +74,11 @@ export class AirtableCommentQuery {
       {
         query,
         async onEachPage(ctx) {
-          const pageComments = ctx.response?.comments || [];
-          for (const data of pageComments) {
-            comments.push(new AirtableComment(table, recordId, data));
+          if (ctx.response?.comments) {
+            const pageComments = ctx.response.comments;
+            for (const data of pageComments) {
+              comments.push(new AirtableComment(table, recordId, data));
+            }
           }
           return true;
         },

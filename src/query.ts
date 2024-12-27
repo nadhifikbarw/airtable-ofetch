@@ -17,7 +17,7 @@ export class AirtableQuery<TFields extends FieldSet> {
 
   constructor(table: AirtableTable<TFields>, opts?: ListRecordsOptions) {
     this.table = table;
-    if (this.opts) this.opts = opts;
+    if (opts) this.opts = opts;
   }
 
   // TODO: support iterator timeout scenario
@@ -67,9 +67,11 @@ export class AirtableQuery<TFields extends FieldSet> {
       body,
       method: "POST",
       async onEachPage(ctx) {
-        const pageRecords = ctx.response?.records || [];
-        for (const data of pageRecords) {
-          records.push(AirtableRecord.fromData(table, data));
+        if (ctx.response?.records) {
+          const pageRecords = ctx.response.records;
+          for (const data of pageRecords) {
+            records.push(AirtableRecord.fromData(table, data));
+          }
         }
         return true;
       },

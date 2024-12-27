@@ -51,10 +51,7 @@ export class AirtableRecord<
     data: RecordData<T>
   ) {
     const rec = new AirtableRecord(table, data.id);
-    rec._data = data;
-    rec.fields = data.fields;
-    rec.createdTime = new Date(data.createdTime);
-    if (data.commentCount) rec.commentCount = data.commentCount;
+    rec.setData(data);
     return rec;
   }
 
