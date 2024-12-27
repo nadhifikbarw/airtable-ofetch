@@ -1,6 +1,23 @@
 # Changelog
 
 
+## v0.1.3
+
+[compare changes](https://github.com/nadhifikbarw/airtable-ofetch/compare/v0.1.2...v0.1.3)
+
+### 🩹 Fixes
+
+- Export more types ([efa42d3](https://github.com/nadhifikbarw/airtable-ofetch/commit/efa42d3))
+- Bad opts passing ([53fcac4](https://github.com/nadhifikbarw/airtable-ofetch/commit/53fcac4))
+
+### 🏡 Chore
+
+- **release:** V0.1.2 ([cddcdaf](https://github.com/nadhifikbarw/airtable-ofetch/commit/cddcdaf))
+
+### ❤️ Contributors
+
+- Nadhifikbarw ([@nadhifikbarw](http://github.com/nadhifikbarw))
+
 ## v0.1.2
 
 [compare changes](https://github.com/nadhifikbarw/airtable-ofetch/compare/v0.1.1...v0.1.2)
