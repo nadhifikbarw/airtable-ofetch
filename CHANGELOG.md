@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.1.4
+
+[compare changes](https://github.com/nadhifikbarw/airtable-ofetch/compare/v0.1.3...v0.1.4)
+
+### 🚀 Enhancements
+
+- Handle iteration timeout ([5334728](https://github.com/nadhifikbarw/airtable-ofetch/commit/5334728))
+
+### 🏡 Chore
+
+- **release:** V0.1.3 ([b22107e](https://github.com/nadhifikbarw/airtable-ofetch/commit/b22107e))
+
+### ❤️ Contributors
+
+- Nadhifikbarw ([@nadhifikbarw](http://github.com/nadhifikbarw))
+
 ## v0.1.3
 
 [compare changes](https://github.com/nadhifikbarw/airtable-ofetch/compare/v0.1.2...v0.1.3)
