@@ -1,4 +1,5 @@
 import type { FetchPaginateContext, FetchPaginateGetOffsetFn } from "./types";
+import type { AirtableError } from "./error";
 
 export function createGetOffset(): FetchPaginateGetOffsetFn {
   return function (ctx: FetchPaginateContext) {
@@ -17,4 +18,8 @@ export function isEmptyObject(value: any): boolean {
 
   const values = Object.values(value);
   return values.length === 0 || !values.some((v) => v != null); // Only null or undefined
+}
+
+export function isIterationTimeoutError(err: AirtableError) {
+  return err?.name === "LIST_RECORDS_ITERATOR_NOT_AVAILABLE";
 }

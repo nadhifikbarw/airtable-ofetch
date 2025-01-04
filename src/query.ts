@@ -1,3 +1,6 @@
+import { AirtableError } from "./error";
+import { AirtableRecord } from "./record";
+import { isIterationTimeoutError } from "./utils";
 import type { AirtableTable } from "./table";
 import type {
   FieldSet,
@@ -5,9 +8,9 @@ import type {
   QueryEachPageFn,
   RecordData,
 } from "./types";
-import { AirtableRecord } from "./record";
 
 export class AirtableQuery<TFields extends FieldSet> {
+  private readonly _resetIteration: boolean;
   readonly table: AirtableTable<TFields>;
   readonly opts?: ListRecordsOptions;
 
@@ -17,11 +20,10 @@ export class AirtableQuery<TFields extends FieldSet> {
 
   constructor(table: AirtableTable<TFields>, opts?: ListRecordsOptions) {
     this.table = table;
+    this._resetIteration = !this.table.base.airtable.noIterationReset;
+
     if (opts) this.opts = opts;
   }
-
-  // TODO: support iterator timeout scenario
-  // @link https://airtable.com/developers/web/api/list-records
 
   async firstPage() {
     const records: AirtableRecord<TFields>[] = [];
@@ -57,25 +59,43 @@ export class AirtableQuery<TFields extends FieldSet> {
     const records: AirtableRecord<TFields>[] = [];
     const table = this.table;
 
-    // Always delete pageSize to use maximum API defaults to save round trip
+    // Always ignore pageSize to use maximum API defaults to save round trip
     const body = { ...this.opts };
     if (body.pageSize) delete body.pageSize;
 
-    await this.$fetchPaginate<{
-      records: RecordData<TFields>[];
-    }>(`${this.table.encodedResourcePath}/listRecords`, {
-      body,
-      method: "POST",
-      async onEachPage(ctx) {
-        if (ctx.response?.records) {
-          const pageRecords = ctx.response.records;
-          for (const data of pageRecords) {
-            records.push(AirtableRecord.fromData(table, data));
+    const paginate = async () => {
+      await this.$fetchPaginate<{
+        records: RecordData<TFields>[];
+      }>(`${this.table.encodedResourcePath}/listRecords`, {
+        body,
+        method: "POST",
+        async onEachPage(ctx) {
+          if (ctx.response?.records) {
+            const pageRecords = ctx.response.records;
+            for (const data of pageRecords)
+              records.push(AirtableRecord.fromData(table, data));
           }
-        }
-        return true;
-      },
-    });
+          return true;
+        },
+      });
+    };
+
+    // Handle iteration timeout
+    let retry = true;
+    while (retry) {
+      try {
+        await paginate();
+        retry = false;
+      } catch (error) {
+        if (
+          !this._resetIteration ||
+          (error instanceof AirtableError && !isIterationTimeoutError(error))
+        )
+          throw error;
+
+        records.length = 0;
+      }
+    }
 
     return records;
   }

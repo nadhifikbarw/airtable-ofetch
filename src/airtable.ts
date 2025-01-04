@@ -39,6 +39,7 @@ export class Airtable {
   readonly endpointUrl: string;
   readonly contentEndpointUrl: string;
   readonly noRetryIfRateLimited: boolean | RetryDelayOption;
+  readonly noIterationReset: boolean;
   readonly requestTimeout: number;
 
   readonly $fetch: $Fetch;
@@ -55,6 +56,7 @@ export class Airtable {
       apiVersion: "0.1.0",
       apiKey: process.env.AIRTABLE_API_KEY,
       noRetryIfRateLimited: false,
+      noIterationReset: false,
       requestTimeout: 300 * 1000, // 5 minutes
     } satisfies AirtableOptions);
     if (!$opts.apiKey) {
@@ -67,6 +69,7 @@ export class Airtable {
     this.apiVersion = $opts.apiVersion;
     this.apiVersionMajor = $opts.apiVersion.split(".")[0];
     this.noRetryIfRateLimited = $opts.noRetryIfRateLimited;
+    this.noIterationReset = $opts.noIterationReset;
     this.requestTimeout = $opts.requestTimeout;
     this.customHeaders = $opts.customHeaders;
 
@@ -232,6 +235,7 @@ export class Airtable {
             ? await options.getOffset(ctx)
             : defaultGetOffset(ctx);
 
+        // Stop pagination if no new offset params
         if (!pageOffsetParams || isEmptyObject(pageOffsetParams)) break;
         offsetParams = pageOffsetParams;
       }
@@ -252,9 +256,11 @@ export class Airtable {
     } satisfies CreateAirtableFetchOptions;
 
     const $opts = defu(opts, {
+      contentEndpointURL: this.contentEndpointUrl,
       endpointURL: this.endpointUrl,
       apiVersion: this.apiVersion,
       apiKey: this.apiKey,
+      noIterationReset: this.noIterationReset,
       noRetryIfRateLimited: this.noRetryIfRateLimited,
       requestTimeout: this.requestTimeout,
       customHeaders:

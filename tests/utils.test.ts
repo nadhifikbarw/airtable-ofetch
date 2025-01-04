@@ -1,5 +1,6 @@
+import { AirtableError } from "../src/error";
+import { isEmptyObject, isIterationTimeoutError } from "../src/utils";
 import { describe, expect, test } from "vitest";
-import { isEmptyObject } from "../src/utils";
 
 describe("isEmptyObject function", () => {
   test("returns false for null and undefined values", () => {
@@ -32,5 +33,29 @@ describe("isEmptyObject function", () => {
 
   test("returns false for object with non-null values", () => {
     expect(isEmptyObject({ a: 1, b: "hello" })).toBe(false);
+  });
+});
+
+describe("isIterationTimeoutError function", () => {
+  test("returns true on iteration error", () => {
+    expect(
+      isIterationTimeoutError(
+        new AirtableError(
+          "LIST_RECORDS_ITERATOR_NOT_AVAILABLE",
+          "The operation cannot be processed"
+        )
+      )
+    ).toBe(true);
+  });
+
+  test("returns false on other AirtableError", () => {
+    expect(
+      isIterationTimeoutError(
+        new AirtableError(
+          "NOT_FOUND",
+          "Could not find what you are looking for"
+        )
+      )
+    ).toBe(false);
   });
 });

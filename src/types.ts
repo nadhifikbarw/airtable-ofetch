@@ -57,10 +57,19 @@ export interface AirtableOptions {
    * Disable / configure exponential backoff with jitter retry
    * whenever API request receive 429 status code response
    *
-   * @see https://airtable.com/developers/web/api/rate-limits
+   * @see {@link https://airtable.com/developers/web/api/rate-limits}
    * @optional
    */
   noRetryIfRateLimited?: boolean | RetryDelayOption;
+
+  /**
+   * Disable automatic reset when server response with Iteration Timeout error
+   * when calling `.all()` on List Records query
+   *
+   * @see {@link https://airtable.com/developers/web/api/list-records#:~:text=LIST_RECORDS_ITERATOR_NOT_AVAILABLE}
+   * @optional
+   */
+  noIterationReset?: boolean;
 
   /**
    * How long in ms before aborting a request attempt.

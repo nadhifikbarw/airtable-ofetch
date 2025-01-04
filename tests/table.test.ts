@@ -257,6 +257,128 @@ describe("AirtableTable", function () {
 
       await expect(table.list().all()).resolves.toHaveLength(4);
     });
+
+    test("handle iteration timeout", async function () {
+      mockResponses(
+        [200, 422, 200],
+        [
+          {
+            records: [
+              {
+                id: "rec0GjNoQFxWcCzUI",
+                createdTime: "2024-12-15T05:06:02.000Z",
+                fields: {
+                  Name: "01JF4BAFS82AKNZDQ0SGMA59WK",
+                  Notes: "Savings Institutions",
+                },
+              },
+              {
+                id: "rec0LcBQrI0LLDVH0",
+                createdTime: "2024-12-15T05:06:02.000Z",
+                fields: {
+                  Name: "01JF4BAFSB5YGXDJ8F4A42MT18",
+                  Notes: "Major Pharmaceuticals",
+                },
+              },
+              // Up to max records allowed
+            ],
+            offset: "itrjH1BVGgfWAxXLV/recBxL3V4PRZ2FZVk",
+          },
+          {
+            error: {
+              type: "LIST_RECORDS_ITERATOR_NOT_AVAILABLE",
+            },
+          },
+          {
+            records: [
+              {
+                id: "rec0GjNoQFxWcCzUI",
+                createdTime: "2024-12-15T05:06:02.000Z",
+                fields: {
+                  Name: "01JF4BAFS82AKNZDQ0SGMA59WK",
+                  Notes: "Savings Institutions",
+                },
+              },
+              {
+                id: "rec0LcBQrI0LLDVH0",
+                createdTime: "2024-12-15T05:06:02.000Z",
+                fields: {
+                  Name: "01JF4BAFSB5YGXDJ8F4A42MT18",
+                  Notes: "Major Pharmaceuticals",
+                },
+              },
+              // Up to max records allowed
+            ],
+            offset: "itrjH1BVGgfWAxXLV/recBxL3V4PRZ2FZVk",
+          },
+          {
+            records: [
+              {
+                id: "rec0GjNoQFxWcCzUI",
+                createdTime: "2024-12-15T05:06:02.000Z",
+                fields: {
+                  Name: "01JF4BAFS82AKNZDQ0SGMA59WK",
+                  Notes: "Savings Institutions",
+                },
+              },
+              {
+                id: "rec0LcBQrI0LLDVH0",
+                createdTime: "2024-12-15T05:06:02.000Z",
+                fields: {
+                  Name: "01JF4BAFSB5YGXDJ8F4A42MT18",
+                  Notes: "Major Pharmaceuticals",
+                },
+              },
+            ],
+          },
+        ]
+      );
+
+      const table = new Airtable()
+        .base("appEpvhkjHcG8OvKu")
+        .table("tblc7ieWKVQM9eequ");
+      await expect(table.list().all()).resolves.toHaveLength(4);
+    });
+
+    test("throws on iteration timeout", async function () {
+      mockResponses(
+        [200, 422],
+        [
+          {
+            records: [
+              {
+                id: "rec0GjNoQFxWcCzUI",
+                createdTime: "2024-12-15T05:06:02.000Z",
+                fields: {
+                  Name: "01JF4BAFS82AKNZDQ0SGMA59WK",
+                  Notes: "Savings Institutions",
+                },
+              },
+              {
+                id: "rec0LcBQrI0LLDVH0",
+                createdTime: "2024-12-15T05:06:02.000Z",
+                fields: {
+                  Name: "01JF4BAFSB5YGXDJ8F4A42MT18",
+                  Notes: "Major Pharmaceuticals",
+                },
+              },
+              // Up to max records allowed
+            ],
+            offset: "itrjH1BVGgfWAxXLV/recBxL3V4PRZ2FZVk",
+          },
+          {
+            error: {
+              type: "LIST_RECORDS_ITERATOR_NOT_AVAILABLE",
+            },
+          },
+        ]
+      );
+
+      const table = new Airtable({ noIterationReset: true })
+        .base("appEpvhkjHcG8OvKu")
+        .table("tblc7ieWKVQM9eequ");
+      await expect(table.list().all()).rejects.toThrowError();
+    });
   });
 
   test("Get record - /:baseId/:tableId/:recordId", async function () {

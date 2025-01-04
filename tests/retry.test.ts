@@ -1,6 +1,6 @@
-import type { RetryDelayOption } from "../src/retry";
 import { createRetryDelayFn } from "../src/retry";
 import { describe, test, expect, beforeEach, vi } from "vitest";
+import type { RetryDelayOption } from "../src/retry";
 
 describe("createRetryDelayFn", () => {
   beforeEach(() => {

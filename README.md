@@ -8,6 +8,18 @@
 
 Modern JS client for [Airtable Web API](https://airtable.com/developers/web/api/introduction)
 
+<!-- TOC -->
+* [airtable-ofetch](#airtable-ofetch)
+  * [🚀 Quick Start](#-quick-start)
+  * [✔️ Works on node, browser, and workers](#-works-on-node-browser-and-workers)
+  * [🔧 Configuration](#-configuration)
+  * [🔁 Pagination](#-pagination)
+  * [📘 Type Friendly](#-type-friendly)
+  * [📦 Bundler Notes](#-bundler-notes)
+  * [💻 Development](#-development)
+  * [License](#license)
+<!-- TOC -->
+
 ## 🚀 Quick Start
 
 Install:
@@ -28,7 +40,7 @@ const airtable = new Airtable(); // Will read process.env.AIRTABLE_API_KEY
 ## ✔️ Works on node, browser, and workers
 This client is implemented on top of [unjs/ofetch](https://github.com/unjs/ofetch) to provide better cross-runtime compatibility.
 
-## ⚙ Configuration
+## 🔧 Configuration
 You can provide custom configuration during client initialization:
 
 ```js
@@ -79,6 +91,15 @@ const airtable = new Airtable({
   noRetryIfRateLimited: true, // This disable retry
 
   /**
+   * Disable automatic reset when server response with Iteration Timeout error
+   * when calling `.all()` on List Records query
+   *
+   * @see {@link https://airtable.com/developers/web/api/list-records#:~:text=LIST_RECORDS_ITERATOR_NOT_AVAILABLE}
+   * @optional
+   */
+  noIterationReset: true, // Throws when iteration timeout
+
+  /**
    * Custom headers to be included when requesting to API endpoint
    *
    * @optional
@@ -127,6 +148,9 @@ await query.eachPage(async (records: AirtableRecord[]) => {
 });
 ```
 
+> [!NOTE]
+> `eachPage()` API need you to handle [Iteration Timeout scenario](https://airtable.com/developers/web/api/list-records#:~:text=LIST_RECORDS_ITERATOR_NOT_AVAILABLE) yourself
+
 For convenient usage, you also have `firstPage()` or `all()` method:
 
 ```typescript
@@ -150,7 +174,7 @@ const airtable = new Airtable();
 const bases: BaseInfo[] = await airtable.bases();
 ```
 
-## 🔧 Type Friendly
+## 📘 Type Friendly
 Specify your own data:
 
 ```typescript
